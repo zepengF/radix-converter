@@ -1,6 +1,6 @@
 # RADIX · 进制转换器
 
-> 在线体验：<https://zepengF.github.io/radix-converter/>
+> 在线体验：<https://zepengf.github.io/radix-converter/>
 
 ![RADIX 进制转换器预览](preview.png)
 
