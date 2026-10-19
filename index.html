@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark light" />
+  <meta name="theme-color" content="#080b09" />
+  <meta
+    name="description"
+    content="RADIX 进制转换器：支持 2–36 进制、任意精度整数与小数，实时换算并一键复制。"
+  />
+  <meta property="og:title" content="RADIX · 进制转换器" />
+  <meta
+    property="og:description"
+    content="支持 2–36 进制、任意精度整数与小数，实时换算并一键复制。"
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="zh_CN" />
+  <meta name="twitter:card" content="summary" />
+  <title>RADIX · 进制转换器</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('radix-theme');
+        var systemLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+        var theme = systemLight ? 'light' : 'dark';
+        if (stored === 'light' || stored === 'dark') theme = stored;
+        document.documentElement.dataset.theme = theme;
+      } catch (error) {
+        document.documentElement.dataset.theme = 'dark';
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="RADIX 进制转换器">
+        <span class="brand-mark" aria-hidden="true">R</span>
+        <span class="brand-text">RADIX<span>进制转换器</span></span>
+      </a>
+
+      <div class="topbar-right">
+        <span class="live"><span aria-hidden="true"></span>实时换算</span>
+        <button
+          class="icon-btn"
+          id="themeToggle"
+          type="button"
+          aria-label="切换到浅色模式"
+        >
+          <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"></path>
+          </svg>
+          <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20.7 14.2A8.64 8.64 0 0 1 9.8 3.3 8.64 8.64 0 1 0 20.7 14.2Z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="heroTitle">
+        <div class="hero-copy">
+          <p class="eyebrow"><span>RADIX</span> / 2—36</p>
+          <h1 id="heroTitle">所有进制，<br /><span class="accent">一眼看懂。</span></h1>
+          <p class="lede">
+            支持 2–36 进制、任意精度整数与小数。输入即时换算，
+            结果一点即复制，所有计算都留在你的浏览器里。
+          </p>
+          <ul class="feature-list" aria-label="功能特点">
+            <li>任意精度 BigInt</li>
+            <li>小数循环提示</li>
+            <li>本地计算</li>
+          </ul>
+        </div>
+
+        <div class="hero-art" aria-hidden="true">
+          <div class="orbit">
+            <span class="orbit-ring ring-one"></span>
+            <span class="orbit-ring ring-two"></span>
+            <span class="orbit-ring ring-three"></span>
+            <span class="orbit-sweep"></span>
+
+            <span class="orbit-token token-2">02</span>
+            <span class="orbit-token token-8">08</span>
+            <span class="orbit-token token-10">10</span>
+            <span class="orbit-token token-16">16</span>
+
+            <span class="orbit-core">
+              <span class="core-kicker">RADIX</span>
+              <strong>2–36</strong>
+              <span class="core-sub">NUMBER SYSTEMS</span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="workspace" aria-label="进制换算工作区">
+        <div class="panel input-panel">
+          <div class="panel-head">
+            <div class="panel-title">
+              <span class="step" aria-hidden="true">01</span>
+              <div>
+                <h2>输入数值</h2>
+                <p>符号、小数、前缀均可识别</p>
+              </div>
+            </div>
+            <button class="ghost-btn" id="clearBtn" type="button">清空</button>
+          </div>
+
+          <div class="field-shell" id="inputShell">
+            <span class="base-tag" id="sourceTag">BASE 02</span>
+            <input
+              id="valueInput"
+              type="text"
+              value="1011.01"
+              inputmode="text"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              aria-label="输入数值"
+              aria-describedby="fieldHint"
+            />
+          </div>
+
+          <p class="field-hint" id="fieldHint">允许数字 0–1 · 可加 0b 前缀</p>
+          <p class="field-error" id="fieldError" role="alert" hidden></p>
+
+          <div class="base-control">
+            <span class="control-label">输入进制</span>
+            <div class="base-chips" id="quickBases" role="group" aria-label="常用输入进制">
+              <button type="button" class="base-chip active" data-base="2">2<span>BIN</span></button>
+              <button type="button" class="base-chip" data-base="8">8<span>OCT</span></button>
+              <button type="button" class="base-chip" data-base="10">10<span>DEC</span></button>
+              <button type="button" class="base-chip" data-base="16">16<span>HEX</span></button>
+            </div>
+            <label class="select-shell source-select">
+              <span class="select-label">任意</span>
+              <select id="sourceBaseSelect" aria-label="选择输入进制（2–36）"></select>
+              <svg class="select-chevron" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m7 10 5 5 5-5"></path>
+              </svg>
+            </label>
+          </div>
+
+          <div class="examples" id="examples">
+            <span class="examples-label">示例</span>
+            <button type="button" class="example-chip" data-value="1011.01" data-base="2" data-target="10">
+              1011.01<sub>2</sub>
+            </button>
+            <button type="button" class="example-chip" data-value="FF.A" data-base="16" data-target="10">
+              FF.A<sub>16</sub>
+            </button>
+            <button type="button" class="example-chip" data-value="3.14159" data-base="10" data-target="2">
+              3.14159<sub>10</sub>
+            </button>
+            <button type="button" class="example-chip" data-value="FFFFFFFFFFFFFFFF" data-base="16" data-target="10">
+              FFFF…FFFF<sub>16</sub>
+            </button>
+          </div>
+        </div>
+
+        <div class="panel output-panel">
+          <div class="panel-head">
+            <div class="panel-title">
+              <span class="step" aria-hidden="true">02</span>
+              <div>
+                <h2>转换结果</h2>
+                <p>选择任意目标进制</p>
+              </div>
+            </div>
+            <label class="select-shell target-select">
+              <span class="select-label">TO</span>
+              <select id="targetBaseSelect" aria-label="选择目标进制（2–36）"></select>
+              <svg class="select-chevron" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m7 10 5 5 5-5"></path>
+              </svg>
+            </label>
+          </div>
+
+          <div class="result-stage" id="resultStage">
+            <div class="result-top">
+              <span class="result-label" id="targetTag">DEC · 十进制</span>
+              <span class="badge exact" id="resultBadge">精确</span>
+            </div>
+            <div class="result-value-wrap">
+              <p class="result-value">
+                <span class="approx-mark" id="approxMark" hidden>≈</span><span id="primaryDigits">11.25</span>
+              </p>
+              <button
+                type="button"
+                class="copy-btn"
+                id="copyPrimary"
+                aria-label="复制转换结果"
+                title="复制结果"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="result-foot">
+              <p id="resultMeta">2 进制 → 10 进制 · 4 位整数 · 2 位小数</p>
+              <label class="precision-control">
+                <span>小数位</span>
+                <select id="precisionSelect" aria-label="最大小数位数">
+                  <option value="8">8</option>
+                  <option value="16" selected>16</option>
+                  <option value="24">24</option>
+                  <option value="32">32</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="display-options">
+            <label class="switch">
+              <input type="checkbox" id="groupToggle" checked />
+              <span class="switch-track" aria-hidden="true"></span>
+              <span>分组显示</span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" id="upperToggle" checked />
+              <span class="switch-track" aria-hidden="true"></span>
+              <span>大写字母</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section class="common-section" aria-labelledby="commonTitle">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow small">QUICK VIEW</p>
+            <h2 id="commonTitle">常用进制</h2>
+          </div>
+          <p class="section-hint">点击卡片复制数值</p>
+        </div>
+
+        <div class="base-grid">
+          <button type="button" class="base-card tone-mint" data-base="2" aria-label="复制二进制结果">
+            <span class="card-top">
+              <span class="card-code">BIN</span>
+              <span class="card-base">02</span>
+            </span>
+            <span class="card-name">二进制</span>
+            <span class="card-value" data-output="2">1011.01</span>
+            <span class="card-copy" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </span>
+          </button>
+
+          <button type="button" class="base-card tone-amber" data-base="8" aria-label="复制八进制结果">
+            <span class="card-top">
+              <span class="card-code">OCT</span>
+              <span class="card-base">08</span>
+            </span>
+            <span class="card-name">八进制</span>
+            <span class="card-value" data-output="8">13.2</span>
+            <span class="card-copy" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </span>
+          </button>
+
+          <button type="button" class="base-card tone-lime is-target" data-base="10" aria-label="复制十进制结果">
+            <span class="card-top">
+              <span class="card-code">DEC</span>
+              <span class="card-base">10</span>
+            </span>
+            <span class="card-name">十进制</span>
+            <span class="card-value" data-output="10">11.25</span>
+            <span class="card-copy" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </span>
+          </button>
+
+          <button type="button" class="base-card tone-violet" data-base="16" aria-label="复制十六进制结果">
+            <span class="card-top">
+              <span class="card-code">HEX</span>
+              <span class="card-base">16</span>
+            </span>
+            <span class="card-name">十六进制</span>
+            <span class="card-value" data-output="16">B.4</span>
+            <span class="card-copy" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </span>
+          </button>
+        </div>
+      </section>
+
+      <details class="all-bases" id="allBases">
+        <summary>
+          <span class="summary-title">
+            <span class="plus-icon" aria-hidden="true"></span>
+            全部 2–36 进制
+          </span>
+          <span class="summary-meta">35 种进制 · 点击复制</span>
+        </summary>
+        <div class="all-grid" id="allBasesGrid"></div>
+      </details>
+    </main>
+
+    <footer class="footer">
+      <span>RADIX / 高精度进制转换器</span>
+      <span>BigInt · 本地计算 · 数据不上传</span>
+      <span>Ctrl K 聚焦输入</span>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <p class="sr-only" id="srStatus" aria-live="polite"></p>
+
+  <noscript>
+    <p style="padding: 24px; text-align: center;">此工具需要启用 JavaScript 才能进行进制换算。</p>
+  </noscript>
+
+  <script src="converter.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
