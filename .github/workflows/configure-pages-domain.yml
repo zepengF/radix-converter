@@ -1,0 +1,55 @@
+name: Configure GitHub Pages domain
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/configure-pages-domain.yml
+
+permissions:
+  contents: read
+  pages: write
+
+jobs:
+  configure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set custom domain and wait for HTTPS certificate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          DOMAIN: radix.zepengf.top
+        run: |
+          set -euo pipefail
+
+          echo "Setting the Pages custom domain to $DOMAIN"
+          gh api --method PUT "repos/$REPO/pages" \
+            --input - <<JSON
+          {"cname":"$DOMAIN","https_enforced":false}
+          JSON
+
+          echo "Waiting for GitHub Pages to issue the TLS certificate"
+          for attempt in $(seq 1 40); do
+            state=$(gh api "repos/$REPO/pages" --jq '.https_certificate.state // "missing"')
+            echo "attempt $attempt: certificate state = $state"
+            if [ "$state" = "approved" ]; then
+              break
+            fi
+            sleep 15
+          done
+
+          state=$(gh api "repos/$REPO/pages" --jq '.https_certificate.state // "missing"')
+          echo "final certificate state: $state"
+
+          if [ "$state" != "approved" ]; then
+            echo "Certificate is not ready yet. The custom domain is set; HTTPS can be enabled later."
+            exit 1
+          fi
+
+          echo "Enforcing HTTPS"
+          gh api --method PUT "repos/$REPO/pages" \
+            --input - <<JSON
+          {"cname":"$DOMAIN","https_enforced":true}
+          JSON
+
+          echo "HTTPS is enabled for https://$DOMAIN/"
